@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<schemalist>
+    <schema path="/org/gnome/shell/extensions/clutter-clock/" id="org.gnome.shell.extensions.clutter-clock">
+        <key type="(dddd)" name="background-color">
+            <default>(0.0,0.0,0.0,0.0)</default>
+            <summary>The background color of the clock in RGBA format.</summary>
+        </key>
+        <key type="b" name="spinning">
+            <default>false</default>
+            <summary>Whether the clock should spin.</summary>
+        </key>
+        <key type="b" name="show-clock">
+            <default>false</default>
+            <summary>Whether the clock should be shown.</summary>
+        </key>
+        <key type="(dddd)" name="color">
+            <default>(1.0, 1.0, 1.0, 1.0)</default>
+            <summary>The color of the clock in RGBA format.</summary>
+        </key>
+        <key type="d" name="scale">
+            <default>1</default>
+            <summary>The scale of the clock.</summary>
+        </key>
+        <key type="d" name="x">
+            <default>0</default>
+            <summary>The x position of the clock.</summary>
+        </key>
+        <key type="d" name="y">
+            <default>0</default>
+            <summary>The y position of the clock.</summary>
+        </key>
+    </schema>
+</schemalist>
