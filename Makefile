@@ -25,7 +25,7 @@
 # OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN
 # IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-UUID = ClutterClock@dsheeler.net
+UUID = clutter-clock@dsheeler.net
 SYSTEMWIDE_SCHEMA_PATH := /usr/share/glib-2.0/schemas
 SRC_DIR := .
 LOCALE_DIR = ./locale

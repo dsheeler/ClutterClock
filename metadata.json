@@ -9,6 +9,6 @@
   "url": "http://dsheeler.net",
   "settings-schema": "org.gnome.shell.extensions.clutter-clock",
   "description": "Clutter Clock: a digital clock on the desktop",
-  "uuid": "ClutterClock@dsheeler.net",
+  "uuid": "clutter-clock@dsheeler.net",
   "name": "Clutter Clock"
 }
