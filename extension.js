@@ -34,12 +34,13 @@ import * as PopupMenu from  "resource:///org/gnome/shell/ui/popupMenu.js";
 export default class clutter_clockExtension extends Extension {
 	constructor(metadata) {
 		super(metadata);
-        this.settings = this.getSettings();
-        this.monitor = Main.layoutManager.monitors[0];
        
 	}
 
 	enable() {
+        this.settings = this.getSettings();
+        this.monitor = Main.layoutManager.primaryMonitor;
+
         let bc = this.settings.get_value("background-color").deep_unpack();
         let brgba = new Gdk.RGBA();
         brgba.red = 255*bc[0];
@@ -62,10 +63,11 @@ export default class clutter_clockExtension extends Extension {
 
         this.text.set_pivot_point(0.5, 0.5);
         Main.uiGroup.add_child(this.text);
-        this.text.hide();
+
+        this.text.opacity = 0;
+        this.text.show();
         this._updateSeconds();
         this._updateSecondsTimeoutId = GLib.timeout_add(GLib.PRIORITY_DEFAULT, 1, this._updateSeconds.bind(this));
-
 
         this.connections = [];
         this.connections.push(this.settings.connect('changed::x', () => {
@@ -112,7 +114,6 @@ export default class clutter_clockExtension extends Extension {
         this.text.set_position(this.monitor.x + this.monitor.width * this.settings.get_double("x"),
                                this.monitor.y + this.monitor.height * this.settings.get_double("y"));
         this.spinning = this.settings.get_boolean("spinning");
-        this._spin();
         this.connections.push(this.settings.connect('changed::spinning', () => {
             this.spinning = this.settings.get_boolean("spinning");
             if (this.spinning) {
@@ -123,15 +124,22 @@ export default class clutter_clockExtension extends Extension {
         }));
         this.showingClock = this.settings.get_boolean("show-clock");
         if (this.showingClock) {
+            this.text.show();
             this._showClock();
+            this._spin();
         }
         this.connections.push(this.settings.connect('changed::show-clock', () => {
             this.showingClock = this.settings.get_boolean("show-clock");
             if (this.showingClock) {
+                this.text.show();
                 this._showClock();
             } else {
                 this._hideClock();
             }
+        }));
+        this.showMilliseconds = this.settings.get_boolean("show-milliseconds");
+        this.connections.push(this.settings.connect('changed::show-milliseconds', () => {
+            this.showMilliseconds = this.settings.get_boolean("show-milliseconds");
         }));
     }
 
@@ -145,21 +153,36 @@ export default class clutter_clockExtension extends Extension {
         });
         this.connections = [];
         this.settings = null;
+        this.text.destroy();
+        this.text = null;
     }
 
     _stopSpin() {
         this.spinning = false;
+        this.text.rotation_angle_z = 0;
+        this.text.rotation_angle_x = 0;
     }
 
     _hideClock() {
         if (this.text) {
-            this.text.hide();
-
+            const params = {
+                opacity: 0,
+                duration: 500,
+                mode: Clutter.AnimationMode.LINEAR,
+            };
+            this.text.ease(params);
         }
     }
       
     _showClock() {
-        this.text.show(); 
+        if (this.text) {
+            const params = {
+                opacity: 255,
+                duration: 500,
+                mode: Clutter.AnimationMode.LINEAR,
+            };
+            this.text.ease(params);
+        }
     }
 
     _spin() {
@@ -167,12 +190,11 @@ export default class clutter_clockExtension extends Extension {
             if (this.text) {
                 this.text.rotation_angle_z = 0;
                 this.text.rotation_angle_x = 0;
-                this.text.set_pivot_point(0.5, 0.5);
                 const params = {
                     rotation_angle_z: -360,
-                    rotation_angle_x: -360,
+                    rotation_angle_x: -1440,
                     duration: 5000,
-                    mode: Clutter.AnimationMode.EASE_IN_OUT,
+                    mode: Clutter.AnimationMode.LINEAR,
                     onComplete: () => {
                         this._spin();
                     }
@@ -183,14 +205,16 @@ export default class clutter_clockExtension extends Extension {
     }
 
     _updateSeconds() {
-        const date = new Date();
-        const formattedHour = String(date.getHours()).padStart(2, '0');
-        const formattedMinutes = String(date.getMinutes()).padStart(2, '0');
-        const formattedSeconds = String(date.getSeconds()).padStart(2, '0');
-        const formattedMilliseconds = String(date.getMilliseconds()).padStart(3, '0');
-        const timeString = `${formattedHour}:${formattedMinutes}:${formattedSeconds}.${formattedMilliseconds}`;
-        this.text.set_text(timeString);
+        if (this.text && this.showingClock) {
+            const date = new Date();
+            const formattedHour = String(date.getHours()).padStart(2, '0');
+            const formattedMinutes = String(date.getMinutes()).padStart(2, '0');
+            const formattedSeconds = String(date.getSeconds()).padStart(2, '0');
+            const formattedMilliseconds = String(date.getMilliseconds()).padStart(3, '0');
+            const timeString = `${formattedHour}:${formattedMinutes}:${formattedSeconds}` +
+            (this.showMilliseconds ? `.${formattedMilliseconds}` : '');
+            this.text.set_text(timeString);
+        }
         return true;
     }
-
 }

@@ -8,7 +8,7 @@
   "original-author": "Daniel Sheeeler",
   "url": "http://dsheeler.net",
   "settings-schema": "org.gnome.shell.extensions.clutter-clock",
-  "description": "clutter-clock: big, nice-looking digital clock on the desktop",
-  "uuid": "Clutter-Clock@dsheeler.net",
+  "description": "Clutter Clock: a digital clock on the desktop",
+  "uuid": "ClutterClock@dsheeler.net",
   "name": "Clutter Clock"
 }

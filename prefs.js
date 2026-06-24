@@ -6,15 +6,12 @@ import Gio from 'gi://Gio';
 
 import { ExtensionPreferences, gettext as _ } from 'resource:///org/gnome/Shell/Extensions/js/extensions/prefs.js'
 
-export default class CoverflowAltTabPreferences extends ExtensionPreferences {
+export default class ClutterClockPreferences extends ExtensionPreferences {
     constructor(metadata) {
         super(metadata);
 
         this.settings = this.getSettings();
 
-        //let IconsPath = GLib.build_filenamev([this.path, 'ui', 'icons']);
-        //let iconTheme = Gtk.IconTheme.get_for_display(Gdk.Display.get_default());
-        //iconTheme.add_search_path(IconsPath);
     }
 
     getVersionString(_page) {
@@ -34,6 +31,7 @@ export default class CoverflowAltTabPreferences extends ExtensionPreferences {
         general_page.add(clock_pref_group);
 
         clock_pref_group.add(this.buildSwitcherAdw("show-clock", [], [], _("Show Clock"), _("Whether the clock should be shown.")));
+        clock_pref_group.add(this.buildSwitcherAdw("show-milliseconds", [], [], _("Show Milliseconds"), _("Whether the milliseconds should be shown.")));
         clock_pref_group.add(this.buildSwitcherAdw("spinning", [], [], _("Spinning"), _("Whether the clock should spin.")));
         clock_pref_group.add(this.buildRangeAdw("scale", [0.0, 2.0, 0.1, [1.0]], _("Scale"), _("The scale of the clock.")));
         clock_pref_group.add(this.buildRangeAdw("x", [-1.0, 1.0, 0.01, [-0.5, 0.0, 0.5]], _("X"), _("The x position of the clock.")));
