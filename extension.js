@@ -31,35 +31,27 @@ import * as Main from 'resource:///org/gnome/shell/ui/main.js';
 import * as PanelMenu from 'resource:///org/gnome/shell/ui/panelMenu.js';
 import * as PopupMenu from  "resource:///org/gnome/shell/ui/popupMenu.js";
 
-export default class clutter_clockExtension extends Extension {
+const FONT_SIZE = 420;
+const BORDER_WIDTH = 10;
+const BORDER_RADIUS = 100;
+
+export default class ClutterClockExtension extends Extension {
 	constructor(metadata) {
 		super(metadata);
-       
 	}
 
-	enable() {
+    enable() {
         this.settings = this.getSettings();
         this.monitor = Main.layoutManager.primaryMonitor;
 
-        let bc = this.settings.get_value("background-color").deep_unpack();
-        let brgba = new Gdk.RGBA();
-        brgba.red = 255*bc[0];
-        brgba.green = 255*bc[1];
-        brgba.blue = 255*bc[2];
-        brgba.alpha = bc[3];
-
-        let color = this.settings.get_value("color").deep_unpack();
-        let colorRgba = new Gdk.RGBA();
-        colorRgba.red = 255*color[0];
-        colorRgba.green = 255*color[1];
-        colorRgba.blue = 255*color[2];
-        colorRgba.alpha = color[3];
-
-        this.text = new St.Label({ style: 'border: 10px solid black; border-radius: 100px; padding: 0.2em; background: #005555; font-family: ubuntu;' +
-        'font-size: 420px; font-weight: bold; color: rgba(' + colorRgba.red + 
-        ',' + colorRgba.green + ',' + colorRgba.blue + ',' + colorRgba.alpha + '); ' +
-        ' background-color: rgba(' + brgba.red + ',' + brgba.green + ',' + brgba.blue + ',' +
-        brgba.alpha + ');', text: "Clutter Clock" }); 
+        this.text = new St.Label({ style: 
+        ' border-width: ' + BORDER_WIDTH +'px;' +
+        ' border-radius: ' + BORDER_RADIUS + 'px;' +
+        ' padding: 0.2em; font-family: ubuntu;' +
+        ' font-size: ' + FONT_SIZE + 'px;' +
+        ' font-weight: bold;' + 
+        ' text: "Clutter Clock";'
+        }); 
 
         this.text.set_pivot_point(0.5, 0.5);
         Main.uiGroup.add_child(this.text);
@@ -70,6 +62,8 @@ export default class clutter_clockExtension extends Extension {
         this._updateSecondsTimeoutId = GLib.timeout_add(GLib.PRIORITY_DEFAULT, 1, this._updateSeconds.bind(this));
 
         this.connections = [];
+        this.text.set_position(this.monitor.x + this.monitor.width * this.settings.get_double("x"),
+                               this.monitor.y + this.monitor.height * this.settings.get_double("y"));
         this.connections.push(this.settings.connect('changed::x', () => {
             const x = this.settings.get_double("x");
             this.text.set_position(this.monitor.x + this.monitor.width * x, this.text.get_position()[1]);
@@ -78,41 +72,28 @@ export default class clutter_clockExtension extends Extension {
             const y = this.settings.get_double("y");
             this.text.set_position(this.text.get_position()[0], this.monitor.y + this.monitor.height * y);
         }));
+
+        const bgColor = this.getColorFromKey("background-color");
+        this.setBackgroundColor(bgColor);
         this.connections.push(this.settings.connect('changed::background-color', () => {
-            let bc = this.settings.get_value("background-color").deep_unpack();
-            let brgba = new Gdk.RGBA();
-            brgba.red = 255*bc[0];
-            brgba.green = 255*bc[1];
-            brgba.blue = 255*bc[2];
-            brgba.alpha = bc[3];
-            this.text.set_style(this.text.get_style() + ' background-color: rgba(' + brgba.red + 
-                                ',' + brgba.green + ',' + brgba.blue + ',' + 
-                                brgba.alpha + ');');
+            const bgColor = this.getColorFromKey("background-color");
+            this.setBackgroundColor(bgColor);
         }));
 
+        const color = this.getColorFromKey("color");
+        this.setTextColor(color);
+        this.setBorderColor(color);
         this.connections.push(this.settings.connect('changed::color', () => {
-            let color = this.settings.get_value("color").deep_unpack();
-            let colorRgba = new Gdk.RGBA();
-            colorRgba.red = 255*color[0];
-            colorRgba.green = 255*color[1];
-            colorRgba.blue = 255*color[2];
-            colorRgba.alpha = color[3];
-            this.text.set_style(this.text.get_style() + ' color: rgba(' + colorRgba.red + 
-                                ',' + colorRgba.green + ',' + colorRgba.blue + ',' + 
-                                colorRgba.alpha + ');');
+            const color = this.getColorFromKey("color");
+            this.setTextColor(color);
+            this.setBorderColor(color);
         }));
 
-        const scale = this.settings.get_double("scale");
-        this.text.set_scale(scale, scale);
-        this.text.set_scale_z(scale);
+        this.setScale();
         this.connections.push(this.settings.connect('changed::scale', () => {
-            const scale = this.settings.get_double("scale");
-            this.text.set_scale(scale, scale);
-            this.text.set_scale_z(scale);
+            this.setScale();
         }));
 
-        this.text.set_position(this.monitor.x + this.monitor.width * this.settings.get_double("x"),
-                               this.monitor.y + this.monitor.height * this.settings.get_double("y"));
         this.spinning = this.settings.get_boolean("spinning");
         this.connections.push(this.settings.connect('changed::spinning', () => {
             this.spinning = this.settings.get_boolean("spinning");
@@ -124,14 +105,12 @@ export default class clutter_clockExtension extends Extension {
         }));
         this.showingClock = this.settings.get_boolean("show-clock");
         if (this.showingClock) {
-            this.text.show();
             this._showClock();
             this._spin();
         }
         this.connections.push(this.settings.connect('changed::show-clock', () => {
-            this.showingClock = this.settings.get_boolean("show-clock");
-            if (this.showingClock) {
-                this.text.show();
+            const showingClock = this.settings.get_boolean("show-clock");
+            if (showingClock) {
                 this._showClock();
             } else {
                 this._hideClock();
@@ -141,6 +120,42 @@ export default class clutter_clockExtension extends Extension {
         this.connections.push(this.settings.connect('changed::show-milliseconds', () => {
             this.showMilliseconds = this.settings.get_boolean("show-milliseconds");
         }));
+    }
+
+    setBorderColor(color) {
+        this.text.set_style(this.text.get_style() + ' border-color: rgba(' + color.red + 
+        ',' + color.green + ',' + color.blue + ',' + 
+        color.alpha + ');');
+    }
+
+    setBackgroundColor(color) {
+        this.text.set_style(this.text.get_style() + ' background-color: rgba(' + color.red + 
+        ',' + color.green + ',' + color.blue + ',' + color.alpha + ');');
+    }
+
+    setTextColor(color) {
+        this.text.set_style(this.text.get_style() + ' color: rgba(' + color.red + 
+        ',' + color.green + ',' + color.blue + ',' + color.alpha + ');');
+    }
+
+    setScale() {
+        let scale = this.settings.get_double("scale");
+        scale = Math.max(0.001, scale);
+        this.text.set_style(this.text.get_style() + 
+        ' font-size: ' + scale * FONT_SIZE + 'px;' + 
+        ' border-radius: ' + scale * BORDER_RADIUS + 'px;' +
+        ' border-width: ' + scale * BORDER_WIDTH + 'px;');
+        this.text.set_scale_z(scale);
+    }
+
+    getColorFromKey(key) {
+        let color = this.settings.get_value(key).deep_unpack();
+        let colorRgba = new Gdk.RGBA();
+        colorRgba.red = 255 * color[0];
+        colorRgba.green = 255 * color[1];
+        colorRgba.blue = 255 * color[2];
+        colorRgba.alpha = color[3];
+        return colorRgba;
     }
 
     disable() {
@@ -157,25 +172,9 @@ export default class clutter_clockExtension extends Extension {
         this.text = null;
     }
 
-    _stopSpin() {
-        this.spinning = false;
-        this.text.rotation_angle_z = 0;
-        this.text.rotation_angle_x = 0;
-    }
-
-    _hideClock() {
-        if (this.text) {
-            const params = {
-                opacity: 0,
-                duration: 500,
-                mode: Clutter.AnimationMode.LINEAR,
-            };
-            this.text.ease(params);
-        }
-    }
-      
     _showClock() {
         if (this.text) {
+            this.showingClock = true;
             const params = {
                 opacity: 255,
                 duration: 500,
@@ -185,23 +184,42 @@ export default class clutter_clockExtension extends Extension {
         }
     }
 
-    _spin() {
+    _hideClock() {
+        if (this.text) {
+            const params = {
+                opacity: 0,
+                duration: 500,
+                mode: Clutter.AnimationMode.LINEAR,
+                onComplete: () => {
+                    this.showingClock = false;
+                }
+            };
+            this.text.ease(params);
+        }
+    }
+
+         _spin() {
         if (this.spinning === true) {
             if (this.text) {
-                this.text.rotation_angle_z = 0;
-                this.text.rotation_angle_x = 0;
                 const params = {
                     rotation_angle_z: -360,
                     rotation_angle_x: -1440,
                     duration: 5000,
                     mode: Clutter.AnimationMode.LINEAR,
                     onComplete: () => {
+                        this.text.rotation_angle_z = 0;
+                        this.text.rotation_angle_x = 0;
+
                         this._spin();
                     }
                 };
                 this.text.ease(params);
             }
         }
+    }
+
+    _stopSpin() {
+        this.spinning = false;
     }
 
     _updateSeconds() {
