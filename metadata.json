@@ -3,7 +3,7 @@
     "50"
   ],
   "original-author": "Daniel Sheeeler",
-  "url": "http://dsheeler.net",
+  "url": "https://github.com/dsheeler/ClutterClock",
   "settings-schema": "org.gnome.shell.extensions.clutter-clock",
   "description": "Clutter Clock: a digital clock on the desktop",
   "uuid": "clutter-clock@dsheeler.net",
