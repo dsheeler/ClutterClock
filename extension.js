@@ -1,35 +1,10 @@
-/* -*- Mode: js2; indent-tabs-mode: nil; c-basic-offset: 2; tab-width: 2 -*-  */
-/*
- * extension.js
- * Copyright (C) 2013 Daniel Sheeeler <six600110@pobox.com>
- * 
- * clutter-clock is free software: you can redistribute it and/or modify it
- * under the terms of the GNU General Public License as published by the
- * Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- * 
- * clutter-clock is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
- * See the GNU General Public License for more details.
- * 
- * You should have received a copy of the GNU General Public License along
- * with this program.  If not, see <http://www.gnu.org/licenses/>.
- */
-
 import St from 'gi://St';
-import GObject from 'gi://GObject';
-import Gio from 'gi://Gio';
 import Clutter from  'gi://Clutter';
 import Gdk from 'gi://Gdk';
 import GLib from 'gi://GLib';
-import Graphene from 'gi://Graphene';
-
 
 import {Extension,gettext as  _} from 'resource:///org/gnome/shell/extensions/extension.js';
 import * as Main from 'resource:///org/gnome/shell/ui/main.js';
-import * as PanelMenu from 'resource:///org/gnome/shell/ui/panelMenu.js';
-import * as PopupMenu from  "resource:///org/gnome/shell/ui/popupMenu.js";
 
 const FONT_SIZE = 420;
 const BORDER_WIDTH = 10;

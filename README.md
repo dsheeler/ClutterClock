@@ -1,5 +1,5 @@
 
-# ClutterClock
+# Clutter Clock
 Scalable, moveable, customizable desktop clock available as an extension for 
 [Gnome-Shell](https://www.gnome.org/). The clock sits on top of your windows, but it is transparent
 to mouse interaction, meaning a click of the mouse would target the windows behind the clock. It's

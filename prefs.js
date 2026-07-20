@@ -399,28 +399,4 @@ export default class ClutterClockPreferences extends ExtensionPreferences {
         pref.add_suffix(reset_button);
         return pref;
     }
-
-    buildShortcutButtonAdw(actionName, title, subtitle) {
-        let shortcutButton = new ShortcutButton(this.settings, {
-            hhomogeneous: false,
-        }, actionName);
-        this.settings.connect("changed::" + actionName, () => {
-            shortcutButton.keybinding = this.settings.get_strv(actionName)[0];
-        });
-        shortcutButton.keybinding = this.settings.get_strv(actionName)[0];
-
-        shortcutButton.connect("notify::keybinding", () => {
-            this.settings.set_strv(actionName, [shortcutButton.keybinding]);
-            this.settings.set_strv(actionName + "-backward", ["<Shift>" + shortcutButton.keybinding])
-        });
-
-        let shortcutActionRow = new Adw.ActionRow({
-            title: _(title),
-            subtitle: _(subtitle)
-        });
-
-        shortcutActionRow.set_activatable_widget(shortcutButton);
-        shortcutActionRow.add_suffix(shortcutButton);
-        return shortcutActionRow;
-    }
 }
