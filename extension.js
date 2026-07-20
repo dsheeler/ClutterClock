@@ -1,6 +1,5 @@
 import St from 'gi://St';
 import Clutter from  'gi://Clutter';
-import Gdk from 'gi://Gdk';
 import GLib from 'gi://GLib';
 
 import {Extension,gettext as  _} from 'resource:///org/gnome/shell/extensions/extension.js';
@@ -125,7 +124,7 @@ export default class ClutterClockExtension extends Extension {
 
     getColorFromKey(key) {
         let color = this.settings.get_value(key).deep_unpack();
-        let colorRgba = new Gdk.RGBA();
+        let colorRgba = {red: 0, green: 0, blue: 0, alpha: 0};
         colorRgba.red = 255 * color[0];
         colorRgba.green = 255 * color[1];
         colorRgba.blue = 255 * color[2];
