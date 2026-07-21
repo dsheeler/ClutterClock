@@ -35,65 +35,75 @@ export default class ClutterClockExtension extends Extension {
         this._updateSeconds();
         this._updateSecondsTimeoutId = GLib.timeout_add(GLib.PRIORITY_DEFAULT, 1, this._updateSeconds.bind(this));
 
-        this.connections = [];
         this.text.set_position(this.monitor.x + this.monitor.width * this.settings.get_double("x"),
                                this.monitor.y + this.monitor.height * this.settings.get_double("y"));
-        this.connections.push(this.settings.connect('changed::x', () => {
+        this.settings.connectObject('changed::x', () => {
             const x = this.settings.get_double("x");
             this.text.set_position(this.monitor.x + this.monitor.width * x, this.text.get_position()[1]);
-        }));
-        this.connections.push(this.settings.connect('changed::y', () => {
+        }, this);
+        this.settings.connectObject('changed::y', () => {
             const y = this.settings.get_double("y");
             this.text.set_position(this.text.get_position()[0], this.monitor.y + this.monitor.height * y);
-        }));
+        }, this);
 
         const bgColor = this.getColorFromKey("background-color");
         this.setBackgroundColor(bgColor);
-        this.connections.push(this.settings.connect('changed::background-color', () => {
+        this.settings.connectObject('changed::background-color', () => {
             const bgColor = this.getColorFromKey("background-color");
             this.setBackgroundColor(bgColor);
-        }));
+        }, this);
 
         const color = this.getColorFromKey("color");
         this.setTextColor(color);
         this.setBorderColor(color);
-        this.connections.push(this.settings.connect('changed::color', () => {
+        this.settings.connectObject('changed::color', () => {
             const color = this.getColorFromKey("color");
             this.setTextColor(color);
             this.setBorderColor(color);
-        }));
+        }, this);
 
         this.setScale();
-        this.connections.push(this.settings.connect('changed::scale', () => {
+        this.settings.connectObject('changed::scale', () => {
             this.setScale();
-        }));
+        }, this);
 
         this.spinning = this.settings.get_boolean("spinning");
-        this.connections.push(this.settings.connect('changed::spinning', () => {
+        this.settings.connectObject('changed::spinning', () => {
             this.spinning = this.settings.get_boolean("spinning");
             if (this.spinning) {
                 this._spin();
             } else {
                 this._stopSpin();
             }
-        }));
+        }, this);
         this.showingClock = this.settings.get_boolean("show-clock");
         if (this.showingClock) {
             this._showClock();
             this._spin();
         }
-        this.connections.push(this.settings.connect('changed::show-clock', () => {
+        this.settings.connectObject('changed::show-clock', () => {
             const showingClock = this.settings.get_boolean("show-clock");
             if (showingClock) {
                 this._showClock();
             } else {
                 this._hideClock();
             }
-        }));
+        }, this);
         this.showMilliseconds = this.settings.get_boolean("show-milliseconds");
-        this.connections.push(this.settings.connect('changed::show-milliseconds', () => {
+        this.settings.connectObject('changed::show-milliseconds', () => {
             this.showMilliseconds = this.settings.get_boolean("show-milliseconds");
-        }));
+        }, this);
+    }
+
+    disable() {
+        if (this._updateSecondsTimeoutId) {
+            GLib.source_remove(this._updateSecondsTimeoutId);
+            this._updateSecondsTimeoutId = null;
+        }
+        this.settings.disconnectObject(this);
+        this.settings = null;
+        this.text.destroy();
+        this.text = null;
     }
 
     setBorderColor(color) {
@@ -130,20 +140,6 @@ export default class ClutterClockExtension extends Extension {
         colorRgba.blue = 255 * color[2];
         colorRgba.alpha = color[3];
         return colorRgba;
-    }
-
-    disable() {
-        if (this._updateSecondsTimeoutId) {
-            GLib.source_remove(this._updateSecondsTimeoutId);
-            this._updateSecondsTimeoutId = null;
-        }
-        this.connections.forEach(connection => {
-            this.settings.disconnect(connection);
-        });
-        this.connections = [];
-        this.settings = null;
-        this.text.destroy();
-        this.text = null;
     }
 
     _showClock() {
