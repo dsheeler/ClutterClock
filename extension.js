@@ -168,7 +168,7 @@ export default class ClutterClockExtension extends Extension {
         }
     }
 
-         _spin() {
+    _spin() {
         if (this.spinning === true) {
             if (this.text) {
                 const params = {
