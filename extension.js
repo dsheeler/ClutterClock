@@ -104,6 +104,7 @@ export default class ClutterClockExtension extends Extension {
         this.settings = null;
         this.text.destroy();
         this.text = null;
+        this._setUnredirectInhibited(false);
     }
 
     setBorderColor(color) {
@@ -142,8 +143,22 @@ export default class ClutterClockExtension extends Extension {
         return colorRgba;
     }
 
+    _setUnredirectInhibited(inhibited) {
+        if (inhibited === Boolean(this._unredirectInhibited))
+            return;
+
+        // Keep the overlay in the composited frame when the panel is hidden.
+        if (inhibited)
+            global.compositor.disable_unredirect();
+        else
+            global.compositor.enable_unredirect();
+
+        this._unredirectInhibited = inhibited;
+    }
+
     _showClock() {
         if (this.text) {
+            this._setUnredirectInhibited(true);
             this.showingClock = true;
             const params = {
                 opacity: 255,
@@ -162,6 +177,7 @@ export default class ClutterClockExtension extends Extension {
                 mode: Clutter.AnimationMode.LINEAR,
                 onComplete: () => {
                     this.showingClock = false;
+                    this._setUnredirectInhibited(false);
                 }
             };
             this.text.ease(params);
